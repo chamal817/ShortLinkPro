@@ -54,3 +54,11 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.Run();
 ```
 
+### Dev Agent Record
+
+**Implemented:** Solution `ShortLink.sln` with Web API project `ShortLink.Api` (net8.0). Minimal API in `Program.cs`: `AddEndpointsApiExplorer`, `AddSwaggerGen`; Swagger/Swagger UI in Development; `GET /health` returns `200 OK` with `{ "status": "ok" }`. Repository layout: `src/ShortLink.Api/`, `tests/ShortLink.Api.UnitTests/`, ready for Features, Domain, and Infrastructure.
+
+**Tests:** `tests/ShortLink.Api.UnitTests/HealthEndpointTests.cs` — 2 tests: `Get_Health_Returns200Ok`, `Get_Health_ReturnsJsonWithStatusOk` (WebApplicationFactory, Development). All tests pass.
+
+**Files changed:** `ShortLink.sln` (new), `src/ShortLink.Api/ShortLink.Api.csproj` (new), `src/ShortLink.Api/Program.cs` (new), `src/ShortLink.Api/appsettings.json` (new), `src/ShortLink.Api/appsettings.Development.json` (new), `src/ShortLink.Api/Properties/launchSettings.json` (new), `src/ShortLink.Api/ShortLink.Api.http` (new), `tests/ShortLink.Api.UnitTests/ShortLink.Api.UnitTests.csproj` (new), `tests/ShortLink.Api.UnitTests/HealthEndpointTests.cs` (new), `README.md` (updated: base application run without Docker).
+

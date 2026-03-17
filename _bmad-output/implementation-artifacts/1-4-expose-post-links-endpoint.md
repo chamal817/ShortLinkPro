@@ -94,3 +94,9 @@ app.MapPost("/api/links", async (
 .WithOpenApi();
 ```
 
+### Dev Agent Checklist (Story 1.4)
+
+- [x] Implement POST `/api/links` endpoint per acceptance criteria.
+- [x] Add/update configuration and wiring for base URL and dependencies.
+- [x] Create unit/integration tests for success and validation error paths; all tests passing.
+

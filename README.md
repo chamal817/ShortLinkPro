@@ -17,21 +17,23 @@ docker compose up -d
 
 **Connection settings** (used by the API via `appsettings` or environment variables):
 
-| Service    | Host     | Port | User     | Password        | Database  |
-|-----------|----------|------|----------|-----------------|----------|
-| PostgreSQL | localhost | 5432 | shortlink | shortlink_secret | shortlink |
-| Redis      | localhost | 6379 | —        | —               | —        |
+| Service    | Host     | Port | User           | Password           | Database  |
+|-----------|----------|------|----------------|--------------------|----------|
+| PostgreSQL | localhost | 5432 | shortlink_user | shortlink_password | shortlink |
+| Redis      | localhost | 6379 | —              | —                  | —        |
 
-- **PostgreSQL connection string:**  
-  `Host=localhost;Port=5432;Database=shortlink;Username=shortlink;Password=shortlink_secret`
-- **Redis configuration:**  
+- **PostgreSQL connection string** (`ConnectionStrings:Default`):  
+  `Host=localhost;Port=5432;Database=shortlink;Username=shortlink_user;Password=shortlink_password`
+- **Redis** (`ConnectionStrings:Redis`):  
   `localhost:6379`
 
-Override via environment: `ConnectionStrings__PostgreSQL`, `Redis__Configuration`.
+Override via environment: `ConnectionStrings__Default`, `ConnectionStrings__Redis`.
 
 ## Run locally (without Docker for the API)
 
-**Important:** Start PostgreSQL and Redis first, or the API will fail at startup with a connection error. From the repository root:
+**Base application (Story 1.1):** You can run the API with only the .NET 8 SDK—no Docker required. The `/health` endpoint returns `200 OK` and Swagger UI is available in Development. See commands below.
+
+**Full stack:** Start PostgreSQL and Redis first, or the API will fail at startup with a connection error. From the repository root:
 
 ```bash
 docker compose up -d
@@ -54,17 +56,44 @@ docker compose up -d
    ```
 
 3. **Open in browser**
-   - API: http://localhost:5152
-   - Swagger UI: http://localhost:5152/swagger
-   - Minimal endpoint: http://localhost:5152/hello
-   - Health: http://localhost:5152/health/live (process), http://localhost:5152/health/ready (DB + Redis)
+   - API: http://localhost:5067 (or port in `launchSettings.json`)
+   - Swagger UI: http://localhost:5067/swagger
+   - Health: http://localhost:5067/health — http://localhost:5067/health/db (DB connectivity)
 
 The API runs in development mode with Swagger enabled by default. If you see "Cannot connect to PostgreSQL", run `docker compose up -d` from the repo root and try again.
+
+## Troubleshooting
+
+### `Npgsql.PostgresException: 28P01: password authentication failed for user "shortlink_user"`
+
+This means the API is connecting to a PostgreSQL instance that does not have the `shortlink_user` / `shortlink_password` credentials (or is rejecting them).
+
+- **If you intend to use the project’s Docker Postgres:**  
+  Start the stack so the correct database is listening on port 5432:
+  ```bash
+  docker compose up -d
+  ```
+  Ensure no other PostgreSQL is bound to 5432 on localhost (e.g. a local install or another container). If something else uses 5432, either stop it or change the Compose port mapping (e.g. `"5433:5432"`) and set the connection string to use port 5433 (e.g. via `ConnectionStrings__Default` or in appsettings).
+
+- **If you use your own PostgreSQL** (different port or local install):  
+  Either create the user and database to match the app:
+  ```sql
+  CREATE USER shortlink_user WITH PASSWORD 'shortlink_password';
+  CREATE DATABASE shortlink OWNER shortlink_user;
+  ```
+  Or override the connection string to use your existing user and password, for example:
+  ```bash
+  set ConnectionStrings__Default=Host=localhost;Port=5432;Database=shortlink;Username=YOUR_USER;Password=YOUR_PASSWORD
+  dotnet run --project src/ShortLink.Api
+  ```
+  (On macOS/Linux use `export ConnectionStrings__Default=...`.)
 
 ## Solution structure
 
 - `ShortLink.sln` — solution file
-- `src/ShortLink.Api/` — main Web API project (Features, Domain, Infrastructure layout for upcoming stories)
+- `src/ShortLink.Api/` — Web API (endpoints, presentation)
+- `src/ShortLink.Domain/` — entities and domain interfaces
+- `src/ShortLink.Infrastructure/` — EF Core `AppDbContext`, repositories, Redis cache
 - `tests/` — unit and integration tests
 
 ## License

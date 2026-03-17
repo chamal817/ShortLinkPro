@@ -18,6 +18,6 @@ Short codes are generated using **base62 encoding of a random value**. Collision
 
 ## Implementation
 
-- **Interface:** `ShortLink.Api.Domain.IShortCodeGenerator` — `string Generate()`.
-- **Implementation:** `ShortLink.Api.Infrastructure.ShortCodeGenerator`.
-- **Persistence:** `ILinkRepository.AddAsync`; uniqueness enforced by `IX_links_short_code` unique index.
+- **Interface:** `ShortLink.Domain.IShortCodeGenerator` — `Task<string> GenerateAsync(CancellationToken)`.
+- **Implementation:** `ShortLink.Infrastructure.Base62ShortCodeGenerator` (8 chars, random bytes → base62).
+- **Persistence:** `ILinkRepository.AddAsync`; uniqueness enforced by unique index on `short_code` (table `links`).

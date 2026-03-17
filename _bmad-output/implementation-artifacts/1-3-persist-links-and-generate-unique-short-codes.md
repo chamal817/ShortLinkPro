@@ -71,3 +71,33 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
+### Tasks / Subtasks
+
+- [x] Domain: Add `IShortCodeGenerator` and `ILinkRepository` interfaces.
+- [x] Infrastructure: Implement `Base62ShortCodeGenerator` (Base62, 8 chars, random bytes); implement `LinkRepository` (ExistsAsync, AddAsync, GetByShortCodeAsync).
+- [x] Persistence: Configure `Link` in `AppDbContext` with table `links`, unique index on ShortCode, CreatedAt required; add migration to rename table to `links`.
+- [x] DI: Register `IShortCodeGenerator` → `Base62ShortCodeGenerator`, `ILinkRepository` → `LinkRepository` in Program.cs.
+- [x] Documentation: Update `docs/short-code-algorithm.md` with interface and implementation names.
+- [x] Tests: Unit tests for `Base62ShortCodeGenerator` (length 8, base62 chars only, cancellation, distinctness); unit tests for `LinkRepository` (ExistsAsync, AddAsync, GetByShortCodeAsync) with InMemory DB.
+
+### Dev Agent Record
+
+**Implemented:** Domain: `IShortCodeGenerator` (`Task<string> GenerateAsync(CancellationToken)`), `ILinkRepository` (ExistsAsync, AddAsync, GetByShortCodeAsync). Infrastructure: `Base62ShortCodeGenerator` (Base62 charset, 8 chars, random bytes; collision handling left to caller via retry on unique constraint), `LinkRepository` using AppDbContext. AppDbContext: Link mapped to table `links`, unique index on ShortCode, CreatedAt required, ShortCode/LongUrl max lengths. Migration `RenameLinksTable` renames table `Links` → `links`. Program.cs: Scoped registration for IShortCodeGenerator and ILinkRepository. docs/short-code-algorithm.md updated to reference ShortLink.Domain and ShortLink.Infrastructure types.
+
+**Tests:** `Base62ShortCodeGeneratorTests`: GenerateAsync returns length 8, only base62 chars, respects cancellation, multiple calls produce different codes. `LinkRepositoryTests`: ExistsAsync false when missing/true after add; AddAsync persists and sets Id; GetByShortCodeAsync null when missing/returns link when exists. All 12 tests pass (3 health + 4 generator + 5 repository).
+
+### File List
+
+- `src/ShortLink.Domain/IShortCodeGenerator.cs` (new)
+- `src/ShortLink.Domain/ILinkRepository.cs` (new)
+- `src/ShortLink.Infrastructure/Base62ShortCodeGenerator.cs` (new)
+- `src/ShortLink.Infrastructure/LinkRepository.cs` (new)
+- `src/ShortLink.Infrastructure/AppDbContext.cs` (modified: ToTable("links"), CreatedAt, IsRequired)
+- `src/ShortLink.Infrastructure/Migrations/20260314171139_RenameLinksTable.cs` (new)
+- `src/ShortLink.Infrastructure/Migrations/20260314171139_RenameLinksTable.Designer.cs` (new)
+- `src/ShortLink.Infrastructure/Migrations/AppDbContextModelSnapshot.cs` (modified)
+- `src/ShortLink.Api/Program.cs` (modified: DI for IShortCodeGenerator, ILinkRepository)
+- `docs/short-code-algorithm.md` (modified: implementation section)
+- `tests/ShortLink.Api.UnitTests/Base62ShortCodeGeneratorTests.cs` (new)
+- `tests/ShortLink.Api.UnitTests/LinkRepositoryTests.cs` (new)
+

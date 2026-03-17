@@ -58,3 +58,9 @@ CREATE TABLE IF NOT EXISTS links_p3 PARTITION OF links
 CREATE UNIQUE INDEX IF NOT EXISTS ux_links_short_code ON links (short_code);
 ```
 
+### Dev Agent Checklist (Story 1.5)
+
+- [x] Implement partitioned `links` schema in PostgreSQL using hash partitioning on `ShortCode`.
+- [x] Align EF Core `Link` entity and `AppDbContext` mapping with the partitioned schema.
+- [x] Create and apply EF Core migration for partitioned schema; document deployment steps; all relevant tests passing.
+
