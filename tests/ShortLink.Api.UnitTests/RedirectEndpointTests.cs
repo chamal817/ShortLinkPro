@@ -24,7 +24,7 @@ public class RedirectEndpointTests : IClassFixture<WebApplicationFactory<Program
         const string shortCode = "redir01";
         const string longUrl = "https://redirect.example.com";
 
-        var factory = _factory.WithWebHostBuilder(builder =>
+            var factory = _factory.WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
             builder.ConfigureServices(services =>
@@ -42,7 +42,8 @@ public class RedirectEndpointTests : IClassFixture<WebApplicationFactory<Program
             {
                 ShortCode = shortCode,
                 LongUrl = longUrl,
-                CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    ClickCount = 0
             });
             db.SaveChanges();
         }
@@ -56,6 +57,13 @@ public class RedirectEndpointTests : IClassFixture<WebApplicationFactory<Program
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Equal(longUrl.TrimEnd('/'), response.Headers.Location?.ToString().TrimEnd('/'));
+
+            using (var scope = factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var link = await db.Links.SingleAsync(l => l.ShortCode == shortCode);
+                Assert.Equal(1, link.ClickCount);
+            }
     }
 
     [Fact]

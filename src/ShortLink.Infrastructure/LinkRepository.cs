@@ -28,4 +28,18 @@ public sealed class LinkRepository : ILinkRepository
     {
         return await _db.Links.AsNoTracking().FirstOrDefaultAsync(l => l.ShortCode == shortCode, cancellationToken);
     }
+
+    public async Task<Link?> GetDetailsByShortCodeAsync(string shortCode, CancellationToken cancellationToken = default)
+    {
+        return await _db.Links.AsNoTracking().FirstOrDefaultAsync(l => l.ShortCode == shortCode, cancellationToken);
+    }
+
+    public async Task IncrementClickCountAsync(string shortCode, CancellationToken cancellationToken = default)
+    {
+        await _db.Links
+            .Where(l => l.ShortCode == shortCode)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(l => l.ClickCount, l => l.ClickCount + 1),
+                cancellationToken);
+    }
 }

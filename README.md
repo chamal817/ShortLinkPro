@@ -62,6 +62,62 @@ docker compose up -d
 
 The API runs in development mode with Swagger enabled by default. If you see "Cannot connect to PostgreSQL", run `docker compose up -d` from the repo root and try again.
 
+## Run full stack with Docker (API + PostgreSQL + Redis)
+
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+This will build the API image using the root `Dockerfile` and start:
+
+- `api` (ShortLink.Api)
+- `postgres` (PostgreSQL 16)
+- `redis` (Redis 7)
+
+**Default connection settings inside the Docker network** (used by the API via environment variables):
+
+| Service     | Host     | Port | User           | Password           | Database  |
+|------------|----------|------|----------------|--------------------|-----------|
+| PostgreSQL | postgres | 5432 | shortlink_user | shortlink_password | shortlink |
+| Redis      | redis    | 6379 | —              | —                  | —         |
+
+The Compose file configures:
+
+- `ConnectionStrings__Default=Host=postgres;Port=5432;Database=shortlink;Username=shortlink_user;Password=shortlink_password`
+- `ConnectionStrings__Redis=redis:6379`
+- `ShortLink__BaseUrl=http://localhost:8080`
+
+**Host access:**
+
+- API: http://localhost:8080
+- Health (overall): http://localhost:8080/health
+- Health (liveness): http://localhost:8080/health/live
+- Health (readiness: DB + Redis): http://localhost:8080/health/ready
+
+## Observability (logging and metrics)
+
+- **Logging**: The API uses ASP.NET Core structured logging and writes logs to the console. Key events logged:
+  - Link creation requests and validation failures.
+  - Redirects (short code, outcome, duration).
+  - Cache failures and database connection issues.
+
+- **Metrics** (Prometheus):
+  - HTTP metrics and application metrics are exposed on `/metrics`.
+  - Custom metrics include:
+    - `shortlink_redirect_total{status, cache_hit}` — total redirects by HTTP status and cache hit flag.
+    - `shortlink_redirect_duration_seconds` — histogram of redirect latency.
+    - `shortlink_cache_hit_total{operation}` / `shortlink_cache_miss_total{operation}` — cache hit/miss counters.
+
+Use a Prometheus server or compatible scraper to collect `/metrics` and build dashboards/alerts for SLAs (availability, latency, and cache effectiveness).
+
+To stop the stack:
+
+```bash
+docker compose down
+```
+
 ## Troubleshooting
 
 ### `Npgsql.PostgresException: 28P01: password authentication failed for user "shortlink_user"`

@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
             e.Property(x => x.ShortCode).IsRequired().HasMaxLength(32);
             e.Property(x => x.LongUrl).IsRequired().HasMaxLength(2048);
             e.Property(x => x.CreatedAt).IsRequired();
+            e.Property(x => x.ClickCount).IsRequired();
         });
     }
 }

@@ -46,16 +46,21 @@ public class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task Get_HealthDb_Returns200WhenDatabaseConnected()
+    public async Task Get_HealthLive_Returns200Ok()
     {
-        var response = await _client.GetAsync("/health/db");
+        var response = await _client.GetAsync("/health/live");
         response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<HealthDbResponse>();
-        Assert.NotNull(body);
-        Assert.Equal("ok", body.Status);
-        Assert.Equal("connected", body.Database);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_HealthReady_Returns503WhenDependenciesUnavailable()
+    {
+        // In test environment we don't configure real PostgreSQL/Redis health checks;
+        // readiness should fail because dependencies are unreachable.
+        var response = await _client.GetAsync("/health/ready");
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
     }
 
     private sealed record HealthResponse(string Status);
-    private sealed record HealthDbResponse(string Status, string Database);
 }

@@ -6,4 +6,5 @@ public class Link
     public required string ShortCode { get; set; }
     public required string LongUrl { get; set; }
     public DateTime CreatedAt { get; set; }
+    public long ClickCount { get; set; }
 }
